@@ -1,27 +1,26 @@
 const {TicketRepository} = require('../repositories');
-const {AppError}=require('../utils/errors')
+const AppError=require('../utils/errors')
 const {Ticket} = require('../models')
 const {MAILER} = require('../config')
 const ticketRepo = new TicketRepository();
 const { StatusCodes } = require('http-status-codes');
 const {ENUM}=require('../utils/common');
 
-async function sendEmail(mailFrom,mailTo,subject,text) {
+async function sendEmail(mailFrom, mailTo, subject, text) {
     try {
         const response = await MAILER.sendMail({
-            from:mailFrom,
-            to:mailTo,
-            subject:subject,
-            text:text
+            from: mailFrom,
+            to: mailTo,
+            subject: subject,
+            text: text
         });
-        if(!response){
-            throw new AppError('Incorrect Details',StatusCodes.BAD_REQUEST);
-        }
+
         return response;
+
     } catch (error) {
-        if(error instanceof AppError) throw error;
+        console.error("MAIL ERROR:", error);
         throw new AppError(
-            'Something went wrong',
+            error.message || 'Something went wrong while sending email',
             StatusCodes.INTERNAL_SERVER_ERROR
         );
     }
@@ -46,9 +45,6 @@ async function createTicket(data) {
 async function getPendingEmails() {
     try {
         const response = await ticketRepo.getPendingTickets();
-        if(!response){
-            throw new AppError('data not found',StatusCodes.NOT_FOUND);
-        }
         return response;
     } catch (error) {
         if(error instanceof AppError) throw error;
